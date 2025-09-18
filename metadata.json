@@ -1,0 +1,5 @@
+{
+  "name": "Veebimajutus Webmail",
+  "description": "A modern, responsive webmail client interface designed with a clean three-column layout, inspired by Veebimajutus.ee branding. It features a collapsible navigation sidebar, a central email list, and a detailed email viewing pane.",
+  "requestFramePermissions": []
+}
