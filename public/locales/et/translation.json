@@ -1,0 +1,19 @@
+{
+  "compose": "Koosta",
+  "inbox": "Postkast",
+  "sent": "Saadetud",
+  "drafts": "Mustandid",
+  "trash": "Prügikast",
+  "logout": "Logi välja",
+  "login": "Logi sisse",
+  "emailAddress": "E-posti aadress",
+  "password": "Parool",
+  "newMessage": "Uus kiri",
+  "to": "Saaja",
+  "subject": "Teema",
+  "message": "Sõnum",
+  "send": "Saada",
+  "discard": "Hülga",
+  "welcomeTitle": "Tere tulemast Veebimajutus Maili",
+  "welcomeMessage": "Valige vasakpoolsest loendist e-kiri selle sisu lugemiseks. Kasutage oma kaustade vahel navigeerimiseks külgriba."
+}

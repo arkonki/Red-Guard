@@ -11,6 +11,8 @@ import {
   CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { closeComposeDialog } from '../../store/slices/uiSlice';
 import { sendMessage } from '../../store/slices/mailSlice';
@@ -18,6 +20,8 @@ import { sendMessage } from '../../store/slices/mailSlice';
 const ComposeEmail: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isComposeOpen } = useAppSelector((state) => state.ui);
+  const { enqueueSnackbar } = useSnackbar();
+  const { t } = useTranslation();
   
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
@@ -35,13 +39,14 @@ const ComposeEmail: React.FC = () => {
     try {
       await dispatch(sendMessage({ to, subject, body })).unwrap();
       // On success, close the dialog and reset state
+      enqueueSnackbar('Email sent successfully!', { variant: 'success' });
       dispatch(closeComposeDialog());
       setTo('');
       setSubject('');
       setBody('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send email:', error);
-      alert('Failed to send email. Please try again.'); // Simple error feedback
+      enqueueSnackbar(error || 'Failed to send email. Please try again.', { variant: 'error' });
     } finally {
       setIsSending(false);
     }
@@ -50,7 +55,7 @@ const ComposeEmail: React.FC = () => {
   return (
     <Dialog open={isComposeOpen} onClose={handleClose} fullWidth maxWidth="md" aria-labelledby="compose-email-dialog-title">
       <DialogTitle sx={{ m: 0, p: 2 }} id="compose-email-dialog-title">
-        New Message
+        {t('newMessage')}
         <IconButton
           aria-label="close"
           onClick={handleClose}
@@ -72,7 +77,7 @@ const ComposeEmail: React.FC = () => {
             required
             margin="dense"
             id="to"
-            label="To"
+            label={t('to')}
             type="email"
             fullWidth
             variant="standard"
@@ -84,7 +89,7 @@ const ComposeEmail: React.FC = () => {
             required
             margin="dense"
             id="subject"
-            label="Subject"
+            label={t('subject')}
             type="text"
             fullWidth
             variant="standard"
@@ -95,7 +100,7 @@ const ComposeEmail: React.FC = () => {
           <TextField
             margin="dense"
             id="body"
-            label="Message"
+            label={t('message')}
             type="text"
             fullWidth
             multiline
@@ -108,13 +113,13 @@ const ComposeEmail: React.FC = () => {
           />
         </DialogContent>
         <DialogActions sx={{ p: '16px 24px' }}>
-          <Button onClick={handleClose} disabled={isSending}>Discard</Button>
+          <Button onClick={handleClose} disabled={isSending}>{t('discard')}</Button>
           <Button
             type="submit"
             variant="contained"
             disabled={!to || !subject || isSending}
           >
-            {isSending ? <CircularProgress size={24} color="inherit" /> : 'Send'}
+            {isSending ? <CircularProgress size={24} color="inherit" /> : t('send')}
           </Button>
         </DialogActions>
       </Box>

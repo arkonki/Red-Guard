@@ -15,6 +15,10 @@ interface MailState {
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   selectedMessageStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
+  // Pagination
+  currentPage: number;
+  totalMessages: number;
+  messagesPerPage: number;
 }
 
 const initialState: MailState = {
@@ -25,6 +29,10 @@ const initialState: MailState = {
   status: 'idle',
   selectedMessageStatus: 'idle',
   error: null,
+  // Pagination
+  currentPage: 1,
+  totalMessages: 0,
+  messagesPerPage: 25,
 };
 
 // --- Thunks ---
@@ -43,12 +51,17 @@ export const fetchMailboxes = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   'mail/fetchMessages',
-  async (mailboxId: string, { rejectWithValue }) => {
+  async ({ folderId, page }: { folderId: string; page: number }, { getState, rejectWithValue }) => {
     try {
+        const { mail } = getState() as { mail: MailState };
         const response = await api.get('/mail/messages', {
-            params: { mailbox: mailboxId },
+            params: { 
+                mailbox: folderId,
+                page,
+                limit: mail.messagesPerPage,
+            },
         });
-        return response.data as Email[];
+        return { ...response.data, page };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -105,18 +118,27 @@ const mailSlice = createSlice({
         state.error = action.payload as string;
       })
       // Fetch Messages
-      .addCase(fetchMessages.pending, (state) => {
+      .addCase(fetchMessages.pending, (state, action) => {
         state.status = 'loading';
-        state.messages = []; // Clear previous messages
+        // If fetching for a different mailbox, clear the old messages.
+        if (state.selectedMailbox !== action.meta.arg.folderId) {
+            state.messages = [];
+            state.totalMessages = 0;
+            state.currentPage = 1;
+        }
+        state.selectedMailbox = action.meta.arg.folderId;
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.messages = action.payload;
+        state.messages = action.payload.messages;
+        state.totalMessages = action.payload.totalMessages;
+        state.currentPage = action.payload.page;
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
         state.messages = [];
+        state.totalMessages = 0;
       })
       // Fetch Single Message
       .addCase(fetchMessageById.pending, (state) => {

@@ -8,7 +8,8 @@ interface User {
     name: string;
 }
 
-interface AuthState {
+// FIX: Export AuthState to be used in other files, like tests.
+export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   token: string | null;

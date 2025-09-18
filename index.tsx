@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import App from './App';
 import { store } from './store/store';
+import './i18n'; // Initialize i18next
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,8 +13,10 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <React.Suspense fallback="Loading...">
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </React.Suspense>
   </React.StrictMode>
 );

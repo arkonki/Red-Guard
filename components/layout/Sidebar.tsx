@@ -17,6 +17,7 @@ import SendIcon from '@mui/icons-material/Send';
 import DraftsIcon from '@mui/icons-material/Drafts';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../store/store';
 import { fetchMailboxes } from '../../store/slices/mailSlice';
 
@@ -38,6 +39,7 @@ const folderIcons: { [key: string]: React.ReactElement } = {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onComposeClick, drawerWidth, isMobile }) => {
   const dispatch = useAppDispatch();
   const { mailboxes, status } = useAppSelector((state) => state.mail);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Fetch mailboxes only if they haven't been fetched yet
@@ -58,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onComposeClick, draw
           onClick={onComposeClick}
           sx={{ py: 1.5 }}
         >
-          Compose
+          {t('compose')}
         </Button>
       </Box>
       {status === 'loading' && mailboxes.length === 0 ? (
@@ -83,8 +85,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onComposeClick, draw
                     },
                 }}
                 >
-                <ListItemIcon>{folderIcons[folder.id] || <InboxIcon />}</ListItemIcon>
-                <ListItemText primary={folder.name} />
+                <ListItemIcon>{folderIcons[folder.id.toLowerCase()] || <InboxIcon />}</ListItemIcon>
+                <ListItemText primary={t(folder.id.toLowerCase(), { defaultValue: folder.name })} />
                 </ListItemButton>
             </ListItem>
             ))}

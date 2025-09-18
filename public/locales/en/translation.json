@@ -1,0 +1,19 @@
+{
+  "compose": "Compose",
+  "inbox": "Inbox",
+  "sent": "Sent",
+  "drafts": "Drafts",
+  "trash": "Trash",
+  "logout": "Logout",
+  "login": "Log In",
+  "emailAddress": "Email Address",
+  "password": "Password",
+  "newMessage": "New Message",
+  "to": "To",
+  "subject": "Subject",
+  "message": "Message",
+  "send": "Send",
+  "discard": "Discard",
+  "welcomeTitle": "Welcome to Veebimajutus Mail",
+  "welcomeMessage": "Select an email from the list on the left to read its content. Use the sidebar to navigate between your folders."
+}

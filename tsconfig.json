@@ -25,12 +25,16 @@
     "index.tsx",
     "theme.ts",
     "types.ts",
+    "i18n.ts",
+    "setupTests.ts",
     "components",
     "pages",
     "services",
     "store",
     "vite.config.ts",
-    "vite-env.d.ts"
+    "vite-env.d.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

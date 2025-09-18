@@ -2,8 +2,9 @@ import React, { useEffect } from 'react';
 import { useParams, NavLink } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { fetchMessages } from '../store/slices/mailSlice';
-import { Box, Typography, List, ListItemButton, ListItemText, Divider, Skeleton, Alert } from '@mui/material';
+import { Box, Typography, List, ListItemButton, ListItemText, Divider, Skeleton, Alert, Pagination, Stack } from '@mui/material';
 import { format, isToday, isThisYear } from 'date-fns';
+import { useSnackbar } from 'notistack';
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -19,15 +20,32 @@ const formatDate = (dateString: string) => {
 const EmailList: React.FC = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const dispatch = useAppDispatch();
-  const { messages, status, error } = useAppSelector((state) => state.mail);
+  const { messages, status, error, currentPage, totalMessages, messagesPerPage } = useAppSelector((state) => state.mail);
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     if (folderId) {
-      dispatch(fetchMessages(folderId));
+      dispatch(fetchMessages({ folderId, page: 1 }))
+        .unwrap()
+        .catch((err) => {
+            enqueueSnackbar(err || `Failed to load emails for ${folderId}.`, { variant: 'error' });
+        });
     }
-  }, [dispatch, folderId]);
+  }, [dispatch, folderId, enqueueSnackbar]);
 
-  if (status === 'loading') {
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    if (folderId) {
+        dispatch(fetchMessages({ folderId, page: value }))
+            .unwrap()
+            .catch((err) => {
+                enqueueSnackbar(err || 'Failed to change page.', { variant: 'error' });
+            });
+    }
+  };
+
+  const pageCount = Math.ceil(totalMessages / messagesPerPage);
+
+  if (status === 'loading' && messages.length === 0) {
     return (
         <Box>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
@@ -47,22 +65,22 @@ const EmailList: React.FC = () => {
     );
   }
   
-  if (status === 'failed') {
+  if (status === 'failed' && messages.length === 0) {
       return <Alert severity="error" sx={{ m: 2 }}>{error || 'Failed to load emails.'}</Alert>;
   }
 
 
   return (
-    <Box sx={{ height: '100%' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.paper', zIndex: 1 }}>
             <Typography variant="h6" component="h2" textTransform="capitalize">
                 {folderId}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-                {messages.length} messages
+                {totalMessages} messages
             </Typography>
         </Box>
-        <List disablePadding>
+        <List disablePadding sx={{ flexGrow: 1, overflowY: 'auto' }}>
             {messages.map((email, index) => (
                 <React.Fragment key={email.id}>
                     <ListItemButton
@@ -119,6 +137,17 @@ const EmailList: React.FC = () => {
                 </React.Fragment>
             ))}
         </List>
+        {pageCount > 1 && (
+            <Stack spacing={2} sx={{ p: 2, borderTop: 1, borderColor: 'divider', alignItems: 'center', backgroundColor: 'background.paper' }}>
+                <Pagination 
+                    count={pageCount} 
+                    page={currentPage} 
+                    onChange={handlePageChange}
+                    color="primary"
+                    disabled={status === 'loading'}
+                />
+            </Stack>
+        )}
     </Box>
   );
 };

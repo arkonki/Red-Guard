@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { SnackbarProvider } from 'notistack';
 import MainLayout from './components/layout/MainLayout';
 import Mailbox from './pages/Mailbox';
 import EmailDetail from './pages/EmailDetail';
@@ -26,28 +27,30 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <HashRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* These nested routes are protected because their parent element is wrapped */}
-            <Route index element={<Navigate to="/folder/inbox" replace />} />
-            <Route path="folder/:folderId" element={<Mailbox />}>
-              <Route index element={<Welcome />} />
-              <Route path="email/:emailId" element={<EmailDetail />} />
+      <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <HashRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            >
+              {/* These nested routes are protected because their parent element is wrapped */}
+              <Route index element={<Navigate to="/folder/inbox" replace />} />
+              <Route path="folder/:folderId" element={<Mailbox />}>
+                <Route index element={<Welcome />} />
+                <Route path="email/:emailId" element={<EmailDetail />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/folder/inbox" replace />} />
             </Route>
-            <Route path="*" element={<Navigate to="/folder/inbox" replace />} />
-          </Route>
-        </Routes>
-      </HashRouter>
-      <ReloadPrompt />
+          </Routes>
+        </HashRouter>
+        <ReloadPrompt />
+      </SnackbarProvider>
     </ThemeProvider>
   );
 }

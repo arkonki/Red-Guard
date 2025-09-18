@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { loginUser } from '../store/slices/authSlice';
 import {
@@ -20,6 +21,7 @@ const LoginPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { isAuthenticated, status, error } = useAppSelector((state) => state.auth);
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -54,7 +56,7 @@ const LoginPage: React.FC = () => {
                             required
                             fullWidth
                             id="email"
-                            label="Email Address"
+                            label={t('emailAddress')}
                             name="email"
                             autoComplete="email"
                             autoFocus
@@ -66,7 +68,7 @@ const LoginPage: React.FC = () => {
                             required
                             fullWidth
                             name="password"
-                            label="Password"
+                            label={t('password')}
                             type="password"
                             id="password"
                             autoComplete="current-password"
@@ -83,7 +85,7 @@ const LoginPage: React.FC = () => {
                             disabled={status === 'loading'}
                             sx={{ mt: 3, mb: 2, py: 1.5 }}
                         >
-                            {status === 'loading' ? <CircularProgress size={24} color="inherit" /> : 'Log In'}
+                            {status === 'loading' ? <CircularProgress size={24} color="inherit" /> : t('login')}
                         </Button>
                     </Box>
                 </Paper>

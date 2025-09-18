@@ -191,9 +191,12 @@ app.get('/api/mail/mailboxes', verifyToken, (req, res) => {
     imap.connect();
 });
 
-// Fetch Message List for a Mailbox
+// Fetch Message List for a Mailbox with Pagination
 app.get('/api/mail/messages', verifyToken, (req, res) => {
     const mailbox = req.query.mailbox || 'INBOX';
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
+
     const imap = getImapConnection(req.user);
 
     imap.once('ready', () => {
@@ -202,52 +205,63 @@ app.get('/api/mail/messages', verifyToken, (req, res) => {
                 imap.end();
                 return res.status(500).json({ message: `Failed to open mailbox: ${mailbox}` });
             }
-            if (box.messages.total === 0) {
+            
+            const totalMessages = box.messages.total;
+            if (totalMessages === 0) {
                 imap.end();
-                return res.json([]);
+                return res.json({ messages: [], totalMessages: 0 });
             }
-            // Fetch the last 30 messages
-            const fetchStart = Math.max(1, box.messages.total - 29);
-            const f = imap.seq.fetch(`${fetchStart}:${box.messages.total}`, {
-                bodies: 'HEADER.FIELDS (FROM SUBJECT DATE)',
-                struct: true,
-            });
-            const messages = [];
-            f.on('message', (msg, seqno) => {
-                let header = {};
-                let uid = '';
-                msg.on('body', (stream, info) => {
-                    let buffer = '';
-                    stream.on('data', (chunk) => {
-                        buffer += chunk.toString('utf8');
+
+            imap.search(['ALL'], (searchErr, uids) => {
+                if (searchErr) {
+                    imap.end();
+                    return res.status(500).json({ message: 'Failed to search for messages' });
+                }
+
+                // Sort descending to get newest first.
+                const sortedUids = uids.sort((a, b) => b - a);
+
+                const startIndex = (page - 1) * limit;
+                const uidsToFetch = sortedUids.slice(startIndex, startIndex + limit);
+
+                if (uidsToFetch.length === 0) {
+                    imap.end();
+                    return res.json({ messages: [], totalMessages });
+                }
+
+                const f = imap.fetch(uidsToFetch, {
+                    bodies: 'HEADER.FIELDS (FROM SUBJECT DATE)',
+                    struct: true,
+                });
+
+                const messages = [];
+                f.on('message', (msg, seqno) => {
+                    let header = {};
+                    let uid = '';
+                    msg.on('body', (stream, info) => {
+                        let buffer = '';
+                        stream.on('data', (chunk) => { buffer += chunk.toString('utf8'); });
+                        stream.once('end', () => { header = Imap.parseHeader(buffer); });
                     });
-                    stream.once('end', () => {
-                        header = Imap.parseHeader(buffer);
+                    msg.once('attributes', (attrs) => { uid = attrs.uid; });
+                    msg.once('end', () => {
+                        messages.push({
+                            id: uid.toString(),
+                            sender: header.from ? header.from[0] : 'N/A',
+                            subject: header.subject ? header.subject[0] : 'No Subject',
+                            snippet: header.subject ? header.subject[0].substring(0, 100) + '...' : '',
+                            timestamp: header.date ? new Date(header.date[0]).toISOString() : new Date().toISOString(),
+                            read: false, // For simplicity
+                        });
                     });
                 });
-                msg.once('attributes', (attrs) => {
-                    uid = attrs.uid;
+                f.once('error', (err) => { console.log('Fetch error: ' + err); });
+                f.once('end', () => {
+                    // Sort messages by UID descending to ensure order
+                    messages.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+                    res.json({ messages, totalMessages });
+                    imap.end();
                 });
-                msg.once('end', () => {
-                    messages.push({
-                        id: uid.toString(),
-                        sender: header.from ? header.from[0] : 'N/A',
-                        subject: header.subject ? header.subject[0] : 'No Subject',
-                        snippet: header.subject ? header.subject[0].substring(0, 100) + '...' : '',
-                        timestamp: header.date ? new Date(header.date[0]).toISOString() : new Date().toISOString(),
-                        read: false, // For simplicity, we can't easily get read status from headers alone
-                    });
-                });
-            });
-            f.once('error', (err) => {
-                console.log('Fetch error: ' + err);
-                 // Don't send response here as it might have already been sent.
-            });
-            f.once('end', () => {
-                // Sort messages by UID descending (newest first)
-                messages.sort((a, b) => b.id - a.id);
-                res.json(messages);
-                imap.end();
             });
         });
     });
@@ -347,6 +361,78 @@ app.post('/api/mail/send', verifyToken, (req, res) => {
         console.log('Email sent:', info.response);
         res.status(200).json({ message: 'Email sent successfully!' });
     });
+});
+
+// Check for new mail and send push notification
+app.post('/api/mail/check-new', verifyToken, (req, res) => {
+    const imap = getImapConnection(req.user);
+    const userEmail = req.user.email;
+
+    imap.once('ready', () => {
+        imap.openBox('INBOX', true, (err, box) => {
+            if (err) {
+                console.error('Error opening INBOX for new mail check:', err);
+                imap.end();
+                return res.status(500).json({ message: 'Failed to open INBOX' });
+            }
+
+            imap.search(['UNSEEN'], (searchErr, uids) => {
+                if (searchErr || !uids || uids.length === 0) {
+                    imap.end();
+                    return res.json({ newMail: false });
+                }
+                
+                // Found new mail, get header of the newest one for notification
+                const newestUid = Math.max(...uids);
+
+                const f = imap.fetch([newestUid], {
+                    bodies: 'HEADER.FIELDS (FROM SUBJECT)',
+                });
+
+                f.on('message', (msg, seqno) => {
+                    msg.on('body', (stream, info) => {
+                        let buffer = '';
+                        stream.on('data', (chunk) => buffer += chunk.toString('utf8'));
+                        stream.once('end', () => {
+                            const header = Imap.parseHeader(buffer);
+                            const from = header.from ? header.from[0].split('<')[0].trim() : 'Unknown Sender';
+                            const subject = header.subject ? header.subject[0] : 'No Subject';
+
+                            const subscription = subscriptions[userEmail];
+                            if (subscription) {
+                                const payload = JSON.stringify({
+                                    title: `New Mail from ${from}`,
+                                    body: subject,
+                                    icon: '/pwa-icon-192x192.png'
+                                });
+                                
+                                webpush.sendNotification(subscription, payload)
+                                    .catch(err => console.error(`Error sending push notification to ${userEmail}:`, err));
+                            }
+                        });
+                    });
+                });
+                
+                f.once('error', (fetchErr) => {
+                    console.log('Fetch error for new mail check: ' + fetchErr);
+                });
+                
+                f.once('end', () => {
+                    res.json({ newMail: true, count: uids.length });
+                    imap.end();
+                });
+            });
+        });
+    });
+
+    imap.once('error', (err) => {
+        console.error('IMAP connection error for new mail check:', err);
+        if (!res.headersSent) {
+            res.status(500).json({ message: 'IMAP connection failed' });
+        }
+    });
+
+    imap.connect();
 });
 
 

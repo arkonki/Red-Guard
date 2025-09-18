@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Avatar, Box, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../../store/store';
 import { logout } from '../../store/slices/authSlice';
 import NotificationBell from '../NotificationBell';
@@ -13,9 +14,14 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onMenuClick, drawerWidth }) => {
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
+  const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
     dispatch(logout());
+  };
+  
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
   };
 
   return (
@@ -45,8 +51,26 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, drawerWidth }) => {
             <Avatar sx={{ bgcolor: 'primary.dark' }}>
                 {user?.name?.charAt(0) || 'A'}
             </Avatar>
+            <Box>
+                <Button 
+                    color="inherit" 
+                    onClick={() => handleLanguageChange('en')} 
+                    disabled={i18n.resolvedLanguage === 'en'}
+                    size="small"
+                >
+                    EN
+                </Button>
+                <Button 
+                    color="inherit" 
+                    onClick={() => handleLanguageChange('et')} 
+                    disabled={i18n.resolvedLanguage === 'et'}
+                    size="small"
+                >
+                    ET
+                </Button>
+            </Box>
             <Button color="inherit" variant="outlined" onClick={handleLogout}>
-              Logout
+              {t('logout')}
             </Button>
         </Box>
       </Toolbar>
