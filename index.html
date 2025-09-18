@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,6 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Veebimajutus Webmail</title>
+    <meta name="theme-color" content="#EF8005">
+    <link rel="apple-touch-icon" href="/pwa-icon-192x192.png" sizes="192x192">
+    <link rel="mask-icon" href="/favicon.svg" color="#FFFFFF">
+    <link rel="manifest" href="/manifest.webmanifest">
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
@@ -14,27 +17,30 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
     />
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
     "react": "https://aistudiocdn.com/react@^19.1.1",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.1",
     "react-redux": "https://aistudiocdn.com/react-redux@^9.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.1",
+    "@mui/material": "https://aistudiocdn.com/@mui/material@^7.3.2",
+    "@mui/icons-material/": "https://aistudiocdn.com/@mui/icons-material@^7.3.2/",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
+    "dompurify": "https://aistudiocdn.com/dompurify@^3.2.7",
     "@reduxjs/toolkit": "https://aistudiocdn.com/@reduxjs/toolkit@^2.9.0",
-    "axios": "https://aistudiocdn.com/axios@^1.7.2",
-    "@mui/material/": "https://aistudiocdn.com/@mui/material@^5.16.5/",
-    "@mui/material": "https://aistudiocdn.com/@mui/material@^5.16.5",
-    "@mui/icons-material/": "https://aistudiocdn.com/@mui/icons-material@^5.16.5/",
-    "@mui/icons-material": "https://aistudiocdn.com/@mui/icons-material@^5.16.5",
-    "@emotion/react": "https://aistudiocdn.com/@emotion/react@^11.13.0",
-    "@emotion/styled": "https://aistudiocdn.com/@emotion/styled@^11.13.0"
+    "axios": "https://aistudiocdn.com/axios@^1.12.2",
+    "@mui/material/": "https://aistudiocdn.com/@mui/material@^7.3.2/",
+    "vite": "https://aistudiocdn.com/vite@^7.1.6",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.3",
+    "vite-plugin-pwa": "https://aistudiocdn.com/vite-plugin-pwa@^1.0.3"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

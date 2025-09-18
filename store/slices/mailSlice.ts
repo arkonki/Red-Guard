@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../services/api';
 import type { Email } from '../../types';
-import type { RootState } from '../store';
 
 interface Mailbox {
   id: string;
@@ -29,16 +28,12 @@ const initialState: MailState = {
 };
 
 // --- Thunks ---
-const API_BASE_URL = '/api/mail';
 
 export const fetchMailboxes = createAsyncThunk(
   'mail/fetchMailboxes',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const token = (getState() as RootState).auth.token;
-      const response = await axios.get(`${API_BASE_URL}/mailboxes`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/mail/mailboxes');
       return response.data as Mailbox[];
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -48,12 +43,10 @@ export const fetchMailboxes = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   'mail/fetchMessages',
-  async (mailboxId: string, { getState, rejectWithValue }) => {
+  async (mailboxId: string, { rejectWithValue }) => {
     try {
-        const token = (getState() as RootState).auth.token;
-        const response = await axios.get(`${API_BASE_URL}/messages`, {
+        const response = await api.get('/mail/messages', {
             params: { mailbox: mailboxId },
-            headers: { Authorization: `Bearer ${token}` },
         });
         return response.data as Email[];
     } catch (error: any) {
@@ -64,11 +57,10 @@ export const fetchMessages = createAsyncThunk(
 
 export const fetchMessageById = createAsyncThunk(
   'mail/fetchMessageById',
-  async (messageId: string, { getState, rejectWithValue }) => {
+  async ({ messageId, mailboxId }: { messageId: string, mailboxId: string }, { rejectWithValue }) => {
     try {
-      const token = (getState() as RootState).auth.token;
-      const response = await axios.get(`${API_BASE_URL}/message/${messageId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get(`/mail/message/${messageId}`, {
+          params: { mailbox: mailboxId },
       });
       return response.data as Email;
     } catch (error: any) {
@@ -79,12 +71,9 @@ export const fetchMessageById = createAsyncThunk(
 
 export const sendMessage = createAsyncThunk(
   'mail/sendMessage',
-  async (emailData: { to: string; subject: string; body: string }, { getState, rejectWithValue }) => {
+  async (emailData: { to: string; subject: string; body: string }, { rejectWithValue }) => {
     try {
-      const token = (getState() as RootState).auth.token;
-      const response = await axios.post(`${API_BASE_URL}/send`, emailData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.post('/mail/send', emailData);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message);

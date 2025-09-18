@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Avatar, Box, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAppSelector, useAppDispatch } from '../../store/store';
 import { logout } from '../../store/slices/authSlice';
+import NotificationBell from '../NotificationBell';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -41,6 +41,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, drawerWidth }) => {
           Veebimajutus Mail
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <NotificationBell />
             <Avatar sx={{ bgcolor: 'primary.dark' }}>
                 {user?.name?.charAt(0) || 'A'}
             </Avatar>

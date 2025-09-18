@@ -4,17 +4,18 @@ import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { fetchMessageById } from '../store/slices/mailSlice';
 import { Box, Typography, Avatar, Skeleton, Chip } from '@mui/material';
+import DOMPurify from 'dompurify';
 
 const EmailDetail: React.FC = () => {
-  const { emailId } = useParams<{ emailId: string }>();
+  const { emailId, folderId } = useParams<{ emailId: string; folderId: string }>();
   const dispatch = useAppDispatch();
   const { selectedMessage: email, selectedMessageStatus: status } = useAppSelector((state) => state.mail);
 
   useEffect(() => {
-    if (emailId) {
-      dispatch(fetchMessageById(emailId));
+    if (emailId && folderId) {
+      dispatch(fetchMessageById({ messageId: emailId, mailboxId: folderId }));
     }
-  }, [emailId, dispatch]);
+  }, [emailId, folderId, dispatch]);
 
   if (status === 'loading') {
     return (
@@ -39,6 +40,9 @@ const EmailDetail: React.FC = () => {
       </Box>
     );
   }
+
+  // Sanitize the HTML before rendering to prevent XSS
+  const cleanHtml = DOMPurify.sanitize(email.body);
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 } }}>
@@ -75,7 +79,7 @@ const EmailDetail: React.FC = () => {
             '& ul, & ol': { pl: '2em' },
             '& h3': { mt: '1.5em', mb: '0.5em', fontSize: '1.25rem' }
         }}
-        dangerouslySetInnerHTML={{ __html: email.body }} 
+        dangerouslySetInnerHTML={{ __html: cleanHtml }} 
       />
     </Box>
   );

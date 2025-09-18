@@ -3,6 +3,18 @@ import { useParams, NavLink } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/store';
 import { fetchMessages } from '../store/slices/mailSlice';
 import { Box, Typography, List, ListItemButton, ListItemText, Divider, Skeleton, Alert } from '@mui/material';
+import { format, isToday, isThisYear } from 'date-fns';
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isToday(date)) {
+        return format(date, 'p'); // e.g., 4:30 PM
+    }
+    if (isThisYear(date)) {
+        return format(date, 'MMM d'); // e.g., Sep 18
+    }
+    return format(date, 'PP'); // e.g., Sep 18, 2023
+};
 
 const EmailList: React.FC = () => {
   const { folderId } = useParams<{ folderId: string }>();
@@ -99,8 +111,8 @@ const EmailList: React.FC = () => {
                                 </>
                             }
                         />
-                         <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, ml: 1 }}>
-                            {new Date(email.timestamp).toLocaleDateString()}
+                         <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, ml: 1, pt: 0.5 }}>
+                            {formatDate(email.timestamp)}
                         </Typography>
                     </ListItemButton>
                     {index < messages.length -1 && <Divider component="li" />}

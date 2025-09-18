@@ -1,6 +1,7 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import api from '../../services/api';
 
 interface User {
     email: string;
@@ -42,15 +43,14 @@ const getInitialState = (): AuthState => {
 
 const initialState: AuthState = getInitialState();
 
-// Async thunk for user login, now with a real API call
+// Async thunk for user login, now using the centralized api service
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async (credentials: {email: string, pass: string}, { rejectWithValue }) => {
+  async (credentials: {email: string, password: string}, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/login', {
-        email: credentials.email,
-        password: credentials.pass, // The backend expects 'password'
-      });
+      // Use the 'api' instance which has the base URL configured.
+      // The interceptor doesn't apply here, but we use it for consistency.
+      const response = await api.post('/auth/login', credentials);
       return response.data as { user: User, token: string };
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response) {

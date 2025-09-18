@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
@@ -9,6 +8,7 @@ import Welcome from './pages/Welcome';
 import LoginPage from './pages/LoginPage';
 import { useAppSelector } from './store/store';
 import theme from './theme';
+import ReloadPrompt from './components/ui/ReloadPrompt';
 
 // A wrapper component to protect routes that require authentication
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
@@ -47,6 +47,7 @@ function App() {
           </Route>
         </Routes>
       </HashRouter>
+      <ReloadPrompt />
     </ThemeProvider>
   );
 }
