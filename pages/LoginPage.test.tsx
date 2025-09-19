@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+// FIX: Import vitest-specific jest-dom matchers to extend `expect` and resolve TypeScript errors.
+import '@testing-library/jest-dom/vitest';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from '../store/slices/authSlice';
+import authReducer, { AuthState } from '../store/slices/authSlice';
 import LoginPage from './LoginPage';
 import '../i18n'; // Initialize i18next for tests
 
 // A test utility to create a mock Redux store
-const createMockStore = (initialState = {}) => {
+const createMockStore = (initialState: Partial<AuthState> = {}) => {
   return configureStore({
     reducer: {
       auth: authReducer,

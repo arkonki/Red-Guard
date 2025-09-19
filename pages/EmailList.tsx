@@ -33,7 +33,7 @@ const EmailList: React.FC = () => {
     }
   }, [dispatch, folderId, enqueueSnackbar]);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     if (folderId) {
         dispatch(fetchMessages({ folderId, page: value }))
             .unwrap()

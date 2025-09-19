@@ -8,6 +8,7 @@ import NotificationBell from '../NotificationBell';
 
 interface HeaderProps {
   onMenuClick: () => void;
+  // FIX: Add drawerWidth to props to fix type error and allow for proper layout with sidebar.
   drawerWidth: number;
 }
 
@@ -30,6 +31,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, drawerWidth }) => {
       color="primary"
       elevation={1}
       sx={{
+        // FIX: Adjust AppBar width and margin for permanent drawer on desktop.
+        width: { md: `calc(100% - ${drawerWidth}px)` },
+        ml: { md: `${drawerWidth}px` },
         zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >

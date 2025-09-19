@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Snackbar, Button, Alert } from '@mui/material';
 

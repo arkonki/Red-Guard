@@ -1,132 +1,99 @@
-# Production Deployment Guide
+# Production Deployment Guide (FreeBSD & Apache 2.4)
 
-This guide provides a step-by-step plan for deploying the Veebimajutus webmail client to a production Linux server environment.
+This guide provides a step-by-step plan for deploying the Veebimajutus webmail client to a production FreeBSD server running Apache 2.4.
 
 **Assumptions:**
-*   You have a Linux server (e.g., running Ubuntu/Debian or CentOS).
-*   You have SSH access and sudo privileges on the server.
-*   You have a domain name pointing to your server's IP address.
-*   Node.js, npm, and a web server (Nginx is recommended) are installed.
+*   Your domain is `your-domain.com`.
+*   Your frontend build files are ready in the `dist` directory.
+*   Your backend Node.js application will run on `localhost:3001`, managed by PM2.
 
 ---
 
-## 1. Frontend Deployment (Static Site)
+## Step 1: Apache Module Prerequisites
 
-The frontend is a static React application. The goal is to build it for production and have Nginx serve the resulting files.
-
-1.  **Build the Frontend:**
-    On your local machine, run the build command in the frontend's root directory:
-    ```bash
-    npm run build
-    ```
-    This command will create an optimized, static version of your app in a new `dist` directory.
-
-2.  **Copy Files to Server:**
-    Securely copy the contents of the `dist` directory to a folder on your server. A common location is `/var/www/your-domain.com`.
-    ```bash
-    # Example using scp
-    scp -r dist/* user@your-server-ip:/var/www/webmail
-    ```
-
-3.  **Configure Nginx:**
-    Create an Nginx server block (virtual host) configuration file for your application.
-    ```bash
-    sudo nano /etc/nginx/sites-available/webmail
-    ```
-
-    Paste and customize the following configuration:
-
-    ```nginx
-    server {
-        listen 80;
-        server_name your-domain.com;
-
-        root /var/www/webmail;
-        index index.html;
-
-        location / {
-            try_files $uri /index.html;
-        }
-
-        # Reverse proxy for the backend API
-        # All requests to /api/* will be forwarded to the Node.js backend
-        location /api/ {
-            proxy_pass http://localhost:3001;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-    *   **`try_files $uri /index.html;`** is crucial for a single-page application. It ensures that if a user directly visits a URL like `your-domain.com/folder/inbox`, Nginx will serve `index.html`, allowing React Router to handle the routing.
-    *   **`location /api/`** block forwards all API requests to your backend server, avoiding CORS issues.
-
-4.  **Enable the Nginx Site:**
-    ```bash
-    sudo ln -s /etc/nginx/sites-available/webmail /etc/nginx/sites-enabled/
-    sudo nginx -t # Test for syntax errors
-    sudo systemctl restart nginx
-    ```
+First, ensure the necessary Apache modules for reverse proxying are enabled. The required modules are `mod_proxy` and `mod_proxy_http`. You can typically check if they are loaded by looking for `LoadModule` directives in your main Apache configuration file (`/usr/local/etc/apache24/httpd.conf`). They are often enabled by default in a standard installation.
 
 ---
 
-## 2. Backend Deployment (Node.js Application)
+## Step 2: Deploy Frontend Files
 
-The backend is a Node.js application that needs to run continuously. We will use **PM2**, a process manager, to ensure it stays online.
+Copy the contents of your frontend `dist` directory to the location where Apache serves files on FreeBSD. A common path is `/usr/local/www/`.
 
-1.  **Copy Files to Server:**
-    Copy the entire `backend` directory to a suitable location on your server, such as `/opt/webmail-api`.
-    ```bash
-    # Example using scp
-    scp -r backend user@your-server-ip:/opt/webmail-api
-    ```
+```bash
+# Example command to copy files
+# Run this from your frontend project directory
+cp -R dist/ /usr/local/www/webmail/
+```
 
-2.  **Install Production Dependencies:**
-    Navigate into the backend directory on the server and install *only* the production dependencies.
-    ```bash
-    cd /opt/webmail-api
-    npm install --production
-    ```
+---
 
-3.  **Create Production `.env` file:**
-    Create and edit the `.env` file with your production mail server credentials and a strong, unique JWT secret.
-    ```bash
-    nano .env
-    ```
-    ```dotenv
-    PORT=3001
-    IMAP_HOST=your-imap-host.com
-    IMAP_PORT=993
-    IMAP_TLS=true
-    SMTP_HOST=your-smtp-host.com
-    SMTP_PORT=465
-    SMTP_SECURE=true
-    JWT_SECRET=generate-a-very-long-and-random-secret-key
-    VAPID_PUBLIC_KEY=your-public-vapid-key
-    VAPID_PRIVATE_KEY=your-private-vapid-key
-    ```
-    **Security Note:** Ensure this file's permissions are restrictive.
+## Step 3: Deploy and Run Backend Application
 
-4.  **Install and Use PM2:**
-    Install PM2 globally on your server.
-    ```bash
-    sudo npm install pm2 -g
-    ```
+1.  Copy your entire `backend` project directory to a location on your server, such as `/usr/home/your-user/webmail-api`.
+2.  Navigate into the directory: `cd /usr/home/your-user/webmail-api`.
+3.  Install production-only dependencies: `npm install --production`.
+4.  Create the `.env` file with your production configuration (mail server details, JWT secret, etc.).
+5.  Use PM2 to start your application and ensure it restarts on server reboots:
 
-5.  **Start the Backend with PM2:**
-    From within the `/opt/webmail-api` directory, start the server.
-    ```bash
-    pm2 start server.js --name webmail-api
-    ```
-    PM2 will now run your application in the background and automatically restart it if it crashes.
+```bash
+# Start the server
+pm2 start server.js --name webmail-api
 
-6.  **Enable PM2 Startup Script:**
-    To ensure PM2 restarts on server reboots, run:
-    ```bash
-    pm2 startup
-    ```
-    It will provide a command you need to copy and run with sudo privileges.
+# Save the current PM2 process list to run on startup
+pm2 save
 
-Your application is now fully deployed!
+# Create the startup script for FreeBSD
+pm2 startup
+# (Follow the instructions output by the pm2 startup command).
+```
+
+---
+
+## Step 4: Create Apache Virtual Host Configuration
+
+Create a new configuration file for your webmail site. For example: `/usr/local/etc/apache24/Includes/webmail.conf`.
+
+Place the following configuration inside this file. This config will serve your React application and forward all API traffic to your backend.
+
+```apache
+<VirtualHost *:80>
+    ServerName your-domain.com
+    DocumentRoot "/usr/local/www/webmail"
+
+    # Settings for the frontend application directory
+    <Directory "/usr/local/www/webmail">
+        # Allow .htaccess files if needed
+        AllowOverride All
+        # Grant access to all visitors
+        Require all granted
+    </Directory>
+
+    # This is critical for Single Page Applications like React.
+    # It ensures that direct visits to routes like /inbox/123 are
+    # handled by index.html, letting React Router take over.
+    FallbackResource /index.html
+
+    # Reverse Proxy configuration for the API
+    # All requests to your-domain.com/api/... will be forwarded
+    # to your Node.js application running on port 3001.
+    ProxyPass /api/ http://localhost:3001/api/
+    ProxyPassReverse /api/ http://localhost:3001/api/
+
+</VirtualHost>
+```
+
+---
+
+## Step 5: Apply Configuration and Restart Apache
+
+After saving the configuration file, check it for syntax errors and then restart Apache to apply the changes.
+
+```bash
+# Check Apache configuration syntax
+apachectl configtest
+
+# If syntax is OK, restart Apache
+service apache24 restart
+```
+
+Your webmail application should now be live. Visiting `http://your-domain.com` will load the React frontend, and any API calls made by the app will be seamlessly routed to your backend Node.js service. The next logical step would be to secure the site by adding an SSL certificate using a tool like Let's Encrypt / Certbot.
