@@ -40,7 +40,7 @@ The backend handles authentication and communication with the mail servers.
 
     ```dotenv
     # Server port
-    PORT=3001
+    PORT=3003
 
     # IMAP Server Configuration (for reading mail)
     IMAP_HOST=imap.veebimajutus.ee
@@ -65,7 +65,7 @@ The backend handles authentication and communication with the mail servers.
     ```bash
     npm start
     ```
-    The server should now be running on `http://localhost:3001`.
+    The server should now be running on `http://localhost:3003`.
 
 ### 2. Frontend Setup
 
@@ -114,8 +114,8 @@ Paste the following configuration into the file. **Remember to replace `/path/to
     # Reverse proxy for the API
     # All requests to /api/... will be forwarded to the Node.js backend
     ProxyPreserveHost On
-    ProxyPass /api/ http://localhost:3001/api/
-    ProxyPassReverse /api/ http://localhost:3001/api/
+    ProxyPass /api/ http://localhost:3003/api/
+    ProxyPassReverse /api/ http://localhost:3003/api/
 
     ErrorLog ${APACHE_LOG_DIR}/veebimail-error.log
     CustomLog ${APACHE_LOG_DIR}/veebimail-access.log combined

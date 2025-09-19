@@ -9,7 +9,7 @@ const { simpleParser } = require('mailparser');
 const webpush = require('web-push');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3003;
 
 // --- Push Notification Setup ---
 const vapidKeys = {

@@ -5,7 +5,7 @@ This guide provides a step-by-step plan for deploying the Veebimajutus webmail c
 **Assumptions:**
 *   Your domain is `your-domain.com`.
 *   Your frontend build files are ready in the `dist` directory.
-*   Your backend Node.js application will run on `localhost:3001`, managed by PM2.
+*   Your backend Node.js application will run on `localhost:3003`, managed by PM2.
 
 ---
 
@@ -75,9 +75,9 @@ Place the following configuration inside this file. This config will serve your 
 
     # Reverse Proxy configuration for the API
     # All requests to your-domain.com/api/... will be forwarded
-    # to your Node.js application running on port 3001.
-    ProxyPass /api/ http://localhost:3001/api/
-    ProxyPassReverse /api/ http://localhost:3001/api/
+    # to your Node.js application running on port 3003.
+    ProxyPass /api/ http://localhost:3003/api/
+    ProxyPassReverse /api/ http://localhost:3003/api/
 
 </VirtualHost>
 ```
