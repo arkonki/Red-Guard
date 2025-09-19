@@ -36,6 +36,18 @@ const folderIcons: { [key: string]: React.ReactElement } = {
   trash: <DeleteIcon />,
 };
 
+// Helper to robustly identify standard folders for UI mapping (icons, translations)
+// regardless of the exact IMAP name (e.g., "Sent Items", "Sent").
+const getIconAndTranslationKey = (folderId: string): string => {
+    const lowerId = folderId.toLowerCase();
+    if (lowerId.includes('sent')) return 'sent';
+    if (lowerId.includes('draft')) return 'drafts';
+    if (lowerId.includes('trash') || lowerId.includes('junk')) return 'trash';
+    if (lowerId.includes('inbox')) return 'inbox';
+    return 'inbox'; // Default key for any other folder
+};
+
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onComposeClick, drawerWidth, isMobile }) => {
   const dispatch = useAppDispatch();
   const { mailboxes, status } = useAppSelector((state) => state.mail);
@@ -69,27 +81,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onComposeClick, draw
         </Box>
       ) : (
         <List>
-            {mailboxes.map((folder) => (
-            <ListItem key={folder.id} disablePadding>
-                <ListItemButton
-                component={NavLink}
-                to={`/folder/${folder.id}`}
-                onClick={onClose}
-                sx={{
-                    '&.active': {
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
-                    '& .MuiListItemIcon-root': {
+            {mailboxes.map((folder) => {
+              const uiKey = getIconAndTranslationKey(folder.id);
+              return (
+                <ListItem key={folder.id} disablePadding>
+                    <ListItemButton
+                    component={NavLink}
+                    to={`/folder/${folder.id}`}
+                    onClick={onClose}
+                    sx={{
+                        '&.active': {
+                        backgroundColor: 'primary.main',
                         color: 'primary.contrastText',
-                    },
-                    },
-                }}
-                >
-                <ListItemIcon>{folderIcons[folder.id.toLowerCase()] || <InboxIcon />}</ListItemIcon>
-                <ListItemText primary={t(folder.id.toLowerCase(), { defaultValue: folder.name })} />
-                </ListItemButton>
-            </ListItem>
-            ))}
+                        '& .MuiListItemIcon-root': {
+                            color: 'primary.contrastText',
+                        },
+                        },
+                    }}
+                    >
+                    <ListItemIcon>{folderIcons[uiKey] || <InboxIcon />}</ListItemIcon>
+                    <ListItemText primary={t(uiKey, { defaultValue: folder.name })} />
+                    </ListItemButton>
+                </ListItem>
+              );
+            })}
         </List>
       )}
     </div>

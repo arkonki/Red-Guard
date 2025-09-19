@@ -165,12 +165,8 @@ app.get('/api/mail/mailboxes', verifyToken, (req, res) => {
                             mailboxList = mailboxList.concat(formatMailboxes(mailbox.children, fullName));
                         }
                     } else {
-                         let id = fullName;
-                         // Standardize common names for easier icon mapping on frontend
-                         if (fullName.toLowerCase() === 'sent items') id = 'sent';
-                         if (fullName.toLowerCase() === 'inbox') id = 'inbox';
-                         if (fullName.toLowerCase() === 'junk') id = 'trash';
-
+                         // The 'id' must be the full IMAP path for API calls.
+                         // The frontend will handle standardizing for UI icons and translations.
                          mailboxList.push({ id: fullName, name: name });
                     }
                 }

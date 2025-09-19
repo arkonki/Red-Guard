@@ -9,7 +9,6 @@ import Welcome from './pages/Welcome';
 import LoginPage from './pages/LoginPage';
 import { useAppSelector } from './store/store';
 import theme from './theme';
-import ReloadPrompt from './components/ui/ReloadPrompt';
 
 // A wrapper component to protect routes that require authentication
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
@@ -49,7 +48,6 @@ function App() {
             </Route>
           </Routes>
         </HashRouter>
-        <ReloadPrompt />
       </SnackbarProvider>
     </ThemeProvider>
   );
