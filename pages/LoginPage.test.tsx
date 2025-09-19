@@ -11,19 +11,22 @@ import '../i18n'; // Initialize i18next for tests
 
 // A test utility to create a mock Redux store
 const createMockStore = (initialState: Partial<AuthState> = {}) => {
+  // Explicitly type the preloaded auth state to prevent type widening and resolve the error.
+  const preloadedAuthState: AuthState = {
+    isAuthenticated: false,
+    user: null,
+    token: null,
+    status: 'idle',
+    error: null,
+    ...initialState,
+  };
+
   return configureStore({
     reducer: {
       auth: authReducer,
     },
     preloadedState: {
-      auth: {
-        isAuthenticated: false,
-        user: null,
-        token: null,
-        status: 'idle',
-        error: null,
-        ...initialState,
-      },
+      auth: preloadedAuthState,
     },
   });
 };
