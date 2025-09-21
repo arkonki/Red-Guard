@@ -1,7 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-// FIX: Import vitest-specific jest-dom matchers to extend `expect` and resolve TypeScript errors.
-import '@testing-library/jest-dom/vitest';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';

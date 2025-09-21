@@ -19,18 +19,27 @@ export interface AuthState {
 
 // Function to load the initial state from localStorage
 const getInitialState = (): AuthState => {
-    const token = localStorage.getItem('authToken');
-    const userString = localStorage.getItem('authUser');
-    const user = userString ? JSON.parse(userString) as User : null;
+    try {
+        const token = localStorage.getItem('authToken');
+        const userString = localStorage.getItem('authUser');
 
-    if (token && user) {
-        return {
-            isAuthenticated: true,
-            user,
-            token,
-            status: 'idle',
-            error: null
+        if (token && userString) {
+            const user = JSON.parse(userString) as User;
+             if (user) {
+                return {
+                    isAuthenticated: true,
+                    user,
+                    token,
+                    status: 'idle',
+                    error: null
+                };
+            }
         }
+    } catch (e) {
+        console.error('Failed to parse auth user from localStorage, clearing auth data.', e);
+        // If parsing fails, clear out the corrupted data to prevent future errors
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
     }
 
     return {
@@ -39,7 +48,7 @@ const getInitialState = (): AuthState => {
         token: null,
         status: 'idle',
         error: null,
-    }
+    };
 }
 
 const initialState: AuthState = getInitialState();
