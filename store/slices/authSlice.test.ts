@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 // FIX: Import AuthState type for type safety in test state.
 import authReducer, { logout, AuthState } from './authSlice';
 
