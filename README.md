@@ -69,7 +69,22 @@ The backend handles authentication and communication with the mail servers.
 
 ### 2. Frontend Setup
 
-The frontend consists of static HTML, CSS, and JavaScript files that will be served by Apache. There is no build step required for this project structure.
+The frontend is a modern React application built using Vite. It requires a build step to compile the source code into static files that can be served by a web server.
+
+1.  **Navigate to the project root directory** (the one containing `package.json`).
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Build the application for production:**
+    ```bash
+    npm run build
+    ```
+    This command will create a `dist` directory in your project root. This directory contains the optimized, static HTML, CSS, and JavaScript files for your application.
+
+4.  **Deployment:** You will deploy the contents of this `dist` folder to your web server. See the `DEPLOYMENT.md` guide for detailed instructions on configuring Apache.
 
 ---
 
@@ -95,15 +110,15 @@ Create a new Apache configuration file for your site. For example, `veebimail.co
 sudo nano /etc/apache2/sites-available/veebimail.conf
 ```
 
-Paste the following configuration into the file. **Remember to replace `/path/to/your/project` with the actual absolute path to the project's root directory.**
+Paste the following configuration into the file. **Remember to replace `/path/to/your/project/dist` with the actual absolute path to the project's `dist` directory.**
 
 ```apache
 <VirtualHost *:80>
     ServerName your-domain.com
     ServerAdmin webmaster@localhost
-    DocumentRoot /path/to/your/project
+    DocumentRoot /path/to/your/project/dist
 
-    <Directory /path/to/your/project>
+    <Directory /path/to/your/project/dist>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -123,7 +138,7 @@ Paste the following configuration into the file. **Remember to replace `/path/to
 ```
 
 **Explanation:**
--   `DocumentRoot`: Points to your project's root directory where `index.html` is located.
+-   `DocumentRoot`: Points to your project's `dist` directory where the built `index.html` is located.
 -   `FallbackResource /index.html`: Crucial for single-page applications. It ensures that any direct navigation to a route like `/folder/inbox` is handled by your React app instead of Apache looking for a file.
 -   `ProxyPass`: Forwards any request that starts with `/api/` to your backend Node.js server.
 
