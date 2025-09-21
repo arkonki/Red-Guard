@@ -35,5 +35,9 @@
     "**/*.test.ts",
     "**/*.test.tsx"
   ],
+  "exclude": [
+    "components/ui/ReloadPrompt.tsx",
+    "components/NotificationBell.tsx"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
